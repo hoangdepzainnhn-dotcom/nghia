@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Key của bạn</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #6ee7a8;
+    --accent-2: #4cc9f0;
+    --accent-3: #7c5cff;
+    --bg: #050508;
+    --card: rgba(18, 18, 24, 0.55);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: #eaeaea;
+    --muted: #7d7d88;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    cursor: default;
+  }
+
+  .bg {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(76, 201, 240, 0.22), transparent 45%),
+      radial-gradient(circle at 80% 30%, rgba(110, 231, 168, 0.18), transparent 45%),
+      radial-gradient(circle at 50% 90%, rgba(124, 92, 255, 0.22), transparent 50%),
+      radial-gradient(circle at 90% 80%, rgba(255, 100, 200, 0.10), transparent 45%);
+    filter: blur(30px);
+    animation: drift 22s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    0%   { transform: translate3d(0,0,0) scale(1) rotate(0deg); }
+    100% { transform: translate3d(0,-4%,0) scale(1.12) rotate(3deg); }
+  }
+
+  .grid {
+    position: fixed; inset: -2px; z-index: 1;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: radial-gradient(circle at 50% 45%, #000 25%, transparent 72%);
+    -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 25%, transparent 72%);
+    animation: gridPan 45s linear infinite;
+  }
+  @keyframes gridPan {
+    0%   { background-position: 0 0, 0 0; }
+    100% { background-position: 52px 52px, 52px 52px; }
+  }
+
+  .noise {
+    position: fixed; inset: 0; z-index: 1;
+    opacity: 0.035;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .halo {
+    position: fixed; top: 50%; left: 50%;
+    width: 780px; height: 780px;
+    transform: translate(-50%, -50%);
+    z-index: 2; pointer-events: none;
+    background: conic-gradient(from 0deg,
+      transparent 0deg,
+      rgba(110, 231, 168, 0.6) 55deg,
+      transparent 125deg,
+      transparent 195deg,
+      rgba(76, 201, 240, 0.6) 255deg,
+      transparent 315deg,
+      transparent 360deg);
+    filter: blur(65px);
+    opacity: 0.6;
+    animation: spin 14s linear infinite;
+  }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .stage {
+    position: relative; z-index: 3;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    perspective: 1200px;
+  }
+
+  .card {
+    width: 100%; max-width: 560px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    padding: 44px 36px 34px;
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.03) inset,
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 40px 100px -25px rgba(0,0,0,0.9),
+      0 0 80px -25px rgba(110, 231, 168, 0.4);
+    text-align: center;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: "";
+    position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), var(--accent-3), transparent);
+    opacity: 1;
+  }
+
+  .card::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: 26px;
+    padding: 1px;
+    background: linear-gradient(135deg,
+      rgba(110,231,168,0.5), transparent 30%,
+      transparent 70%, rgba(124,92,255,0.5));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .card > * { transform: translateZ(30px); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    background: rgba(110, 231, 168, 0.08);
+    border: 1px solid rgba(110, 231, 168, 0.28);
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    box-shadow: 0 0 20px -5px rgba(110, 231, 168, 0.4);
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .title {
+    font-size: 30px; font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(180deg, #ffffff 0%, #c8c8d0 50%, #7d7d88 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+    text-shadow: 0 0 40px rgba(255,255,255,0.06);
+  }
+  .subtitle {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 30px;
+    letter-spacing: 0.01em;
+  }
+
+  .key-wrap {
+    position: relative;
+    margin-bottom: 20px;
+    padding: 2px;
+    border-radius: 16px;
+    background: linear-gradient(135deg,
+      rgba(110,231,168,0.5),
+      rgba(76,201,240,0.3) 40%,
+      rgba(124,92,255,0.5));
+    box-shadow:
+      0 0 40px -10px rgba(110, 231, 168, 0.5),
+      0 0 80px -30px rgba(124, 92, 255, 0.5);
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 40px -10px rgba(110,231,168,0.5), 0 0 80px -30px rgba(124,92,255,0.5); }
+    50%      { box-shadow: 0 0 55px -8px rgba(110,231,168,0.7), 0 0 100px -25px rgba(124,92,255,0.7); }
+  }
+  .key-box {
+    background: #08080c;
+    border-radius: 14px;
+    padding: 28px 20px;
+    font-family: "SF Mono", ui-monospace, Consolas, monospace;
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: 0.26em;
+    color: var(--accent);
+    word-break: break-all;
+    min-height: 108px;
+    display: flex; align-items: center; justify-content: center;
+    text-shadow:
+      0 0 24px rgba(110, 231, 168, 0.6),
+      0 0 60px rgba(110, 231, 168, 0.3);
+    user-select: all;
+    transition: color 0.2s, text-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .key-box::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg,
+      transparent 40%,
+      rgba(255,255,255,0.08) 50%,
+      transparent 60%);
+    background-size: 200% 100%;
+    animation: shimmer 3.5s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .key-box.loading {
+    color: var(--muted);
+    text-shadow: none;
+    font-size: 14px;
+    letter-spacing: 0.18em;
+  }
+  .key-box.error {
+    color: #ff6b6b;
+    font-size: 14px;
+    text-shadow: 0 0 24px rgba(255, 107, 107, 0.5);
+  }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 4px; }
+
+  button {
+    flex: 1;
+    padding: 15px 18px;
+    border-radius: 12px;
+    border: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: transform 0.12s ease, box-shadow 0.25s ease, background 0.25s ease, opacity 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  button:active { transform: translateY(1px) scale(0.99); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  #copyBtn {
+    background: linear-gradient(135deg, var(--accent), #3fc98a);
+    color: #04160f;
+    box-shadow:
+      0 10px 30px -10px rgba(110, 231, 168, 0.7),
+      0 0 0 1px rgba(110, 231, 168, 0.4) inset;
+  }
+  #copyBtn:hover:not(:disabled) {
+    box-shadow:
+      0 14px 40px -10px rgba(110, 231, 168, 0.95),
+      0 0 0 1px rgba(110, 231, 168, 0.6) inset;
+  }
+
+  .hint {
+    margin-top: 22px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+  }
+  .hint .timer {
+    color: var(--accent);
+    font-family: "SF Mono", ui-monospace, Consolas, monospace;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .flash {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.7), transparent 60%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.45s;
+  }
+  .flash.on { opacity: 1; transition: none; }
+
+  .particles {
+    position: fixed; inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    opacity: 0;
+    animation: float 9s linear infinite;
+  }
+  @keyframes float {
+    0%   { transform: translateY(0) scale(0.6); opacity: 0; }
+    15%  { opacity: 0.8; }
+    85%  { opacity: 0.6; }
+    100% { transform: translateY(-110vh) scale(1); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="bg"></div>
+  <div class="grid"></div>
+  <div class="noise"></div>
+  <div class="particles" id="particles"></div>
+  <div class="halo"></div>
+
+  <div class="stage">
+    <section class="card" id="card">
+      <div class="badge"><span class="dot"></span>Xác minh IP &amp; Thiết bị</div>
+      <h1 class="title">Key của bạn</h1>
+      <p class="subtitle">Mỗi IP &amp; thiết bị — 1 key / 12 giờ</p>
+
+      <div class="key-wrap">
+        <div class="key-box loading" id="keyBox">ĐANG XÁC MINH</div>
+      </div>
+
+      <div class="btn-row">
+        <button id="copyBtn" disabled>Sao chép<span class="flash" id="flash"></span></button>
+      </div>
+
+      <div class="hint" id="hint">Đang xác minh IP &amp; thiết bị...</div>
+    </section>
+  </div>
+
+<script>
+(function () {
+  const KEY_LENGTH = 5;
+  const CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const COOLDOWN_MS = 12 * 60 * 60 * 1000;
+  const LS_PREFIX = "outcome_key_v1_";
+
+  const keyBox = document.getElementById("keyBox");
+  const copyBtn = document.getElementById("copyBtn");
+  const hint = document.getElementById("hint");
+  const flash = document.getElementById("flash");
+  const card = document.getElementById("card");
+
+  let currentKey = null;
+  let countdownTimer = null;
+
+  function generateKey() {
+    const len = CHARS.length;
+    let out = "";
+    if (window.crypto && window.crypto.getRandomValues) {
+      const buf = new Uint32Array(KEY_LENGTH);
+      window.crypto.getRandomValues(buf);
+      for (let i = 0; i < KEY_LENGTH; i++) out += CHARS[buf[i] % len];
+    } else {
+      for (let i = 0; i < KEY_LENGTH; i++) out += CHARS[Math.floor(Math.random() * len)];
+    }
+    return out;
+  }
+
+  function hash(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 0x01000193) >>> 0;
+    }
+    return h.toString(36);
+  }
+
+  async function deviceFingerprint() {
+    const parts = [
+      navigator.userAgent || "",
+      navigator.language || "",
+      (navigator.languages || []).join(","),
+      screen.width + "x" + screen.height + "x" + screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || 0,
+      navigator.deviceMemory || 0,
+      navigator.platform || "",
+      !!window.chrome, !!window.safari,
+      (function () {
+        try {
+          const c = document.createElement("canvas");
+          c.width = 200; c.height = 40;
+          const ctx = c.getContext("2d");
+          ctx.textBaseline = "top";
+          ctx.font = "14px Arial";
+          ctx.fillStyle = "#f60";
+          ctx.fillRect(0, 0, 200, 40);
+          ctx.fillStyle = "#069";
+          ctx.fillText("outcome-fp-1.0", 2, 6);
+          ctx.fillStyle = "rgba(102,204,0,0.7)";
+          ctx.fillText("outcome-fp-1.0", 4, 8);
+          return c.toDataURL().slice(-64);
+        } catch (e) { return "no-canvas"; }
+      })()
+    ];
+    return hash(parts.join("|"));
+  }
+
+  async function getIP() {
+    try {
+      const r = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+      const j = await r.json();
+      return j.ip || "unknown";
+    } catch (e) {
+      return "unknown";
+    }
+  }
+
+  async function computeIdentity() {
+    const [ip, fp] = await Promise.all([getIP(), deviceFingerprint()]);
+    return { ip, fp, id: hash(ip + "|" + fp) };
+  }
+
+  function startCountdown(nextResetAt) {
+    if (countdownTimer) clearInterval(countdownTimer);
+    const pad = (n) => String(n).padStart(2, "0");
+    const tick = () => {
+      const ms = nextResetAt - Date.now();
+      if (ms <= 0) {
+        clearInterval(countdownTimer);
+        hint.innerHTML = "Đã đủ 12 giờ — đang lấy key mới...";
+        setTimeout(run, 800);
+        return;
+      }
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      hint.innerHTML = `Key đổi sau <span class="timer">${pad(h)}:${pad(m)}:${pad(s)}</span>`;
+    };
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+  }
+
+  function rollThenReveal(finalKey, done) {
+    let ticks = 0;
+    const maxTicks = 12;
+    const iv = setInterval(() => {
+      let s = "";
+      for (let i = 0; i < finalKey.length; i++) {
+        s += CHARS[Math.floor(Math.random() * CHARS.length)];
+      }
+      keyBox.textContent = s;
+      ticks++;
+      if (ticks >= maxTicks) {
+        clearInterval(iv);
+        keyBox.textContent = finalKey;
+        done && done();
+      }
+    }, 55);
+  }
+
+  async function run() {
+    keyBox.className = "key-box loading";
+    keyBox.textContent = "ĐANG XÁC MINH";
+    copyBtn.disabled = true;
+    hint.textContent = "Đang xác minh IP & thiết bị...";
+
+    let identity;
+    try {
+      identity = await computeIdentity();
+    } catch (e) {
+      keyBox.className = "key-box error";
+      keyBox.textContent = "LỖI XÁC MINH";
+      hint.textContent = "Không xác minh được thiết bị.";
+      return;
+    }
+
+    const storeKey = LS_PREFIX + identity.id;
+
+    let rec = null;
+    try {
+      const raw = localStorage.getItem(storeKey);
+      if (raw) rec = JSON.parse(raw);
+    } catch (e) {}
+
+    const now = Date.now();
+
+    if (rec && rec.key && rec.issuedAt && (now - rec.issuedAt) < COOLDOWN_MS) {
+      currentKey = rec.key;
+      keyBox.className = "key-box";
+      keyBox.textContent = rec.key;
+      copyBtn.disabled = false;
+      startCountdown(rec.issuedAt + COOLDOWN_MS);
+      return;
+    }
+
+    const newKey = generateKey();
+    const newRec = { key: newKey, issuedAt: now, ip: identity.ip };
+    try { localStorage.setItem(storeKey, JSON.stringify(newRec)); } catch (e) {}
+
+    currentKey = newKey;
+    keyBox.className = "key-box";
+    rollThenReveal(newKey, () => {
+      copyBtn.disabled = false;
+    });
+    startCountdown(now + COOLDOWN_MS);
+  }
+
+  copyBtn.addEventListener("click", async (e) => {
+    if (!currentKey) return;
+    const r = copyBtn.getBoundingClientRect();
+    flash.style.setProperty("--x", ((e.clientX - r.left) / r.width * 100) + "%");
+    flash.style.setProperty("--y", ((e.clientY - r.top) / r.height * 100) + "%");
+    flash.classList.remove("on"); void flash.offsetWidth; flash.classList.add("on");
+    setTimeout(() => flash.classList.remove("on"), 450);
+
+    try {
+      await navigator.clipboard.writeText(currentKey);
+      const old = copyBtn.firstChild.textContent;
+      copyBtn.firstChild.textContent = "Đã chép ";
+      setTimeout(() => { copyBtn.firstChild.textContent = old; }, 1200);
+    } catch (err) {
+      hint.textContent = "Không tự chép được — chọn key và Ctrl+C.";
+    }
+  });
+
+  (function tilt() {
+    const stage = document.querySelector(".stage");
+    let raf = null;
+    stage.addEventListener("mousemove", (e) => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        const r = card.getBoundingClientRect();
+        const cx = r.left + r.width / 2;
+        const cy = r.top + r.height / 2;
+        const dx = (e.clientX - cx) / r.width;
+        const dy = (e.clientY - cy) / r.height;
+        const rotX = Math.max(-8, Math.min(8, -dy * 12));
+        const rotY = Math.max(-10, Math.min(10, dx * 14));
+        card.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(0)`;
+      });
+    });
+    stage.addEventListener("mouseleave", () => {
+      card.style.transform = "";
+    });
+  })();
+
+  (function spawnParticles() {
+    const box = document.getElementById("particles");
+    const colors = ["#6ee7a8", "#4cc9f0", "#7c5cff"];
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement("div");
+      p.className = "particle";
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.bottom = "-10px";
+      p.style.animationDelay = (Math.random() * 9) + "s";
+      p.style.animationDuration = (7 + Math.random() * 6) + "s";
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      p.style.background = c;
+      p.style.boxShadow = `0 0 10px ${c}`;
+      p.style.width = p.style.height = (2 + Math.random() * 3) + "px";
+      box.appendChild(p);
+    }
+  })();
+
+  run();
+
+})();
+</script>
+</body>
+</html>
